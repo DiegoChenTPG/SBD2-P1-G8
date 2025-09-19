@@ -7,8 +7,8 @@
 -- - Convierte '\N' -> NULL en tu carga
 -- ============================================================================
 
-CREATE DATABASE IF NOT EXISTS imdb_norm_simple;
-USE imdb_norm_simple;
+CREATE DATABASE IF NOT EXISTS BASES2_PROYECTOS;
+USE BASES2_PROYECTOS;
 
 -- ============================================================================
 -- TITLE BASICS
