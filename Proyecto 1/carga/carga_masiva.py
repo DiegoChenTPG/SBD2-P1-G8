@@ -1,13 +1,21 @@
 import os
 import csv
 import mysql.connector
+import sys
+
+
+# Aumentar el límite de tamaño permitido por csv para campos muy grandes
+try:
+    csv.field_size_limit(sys.maxsize)      # máximo posible
+except OverflowError:
+    csv.field_size_limit(2**31 - 1)        # fallback (Windows 32-bit)
 
 DB_CONFIG = {  # Esta variable puede tener cualquier nombre
-    "host": "192.168.0.8",
-    # "host": "localhost",
+    #"host": "192.168.0.8",
+    "host": "localhost",
     "user": "root",                 # Cambia según tu usuario de MySQL
     "password": "bases2_proyecto",  # Cambia según tu contraseña de MySQL
-    "database": "base_bases2_proyecto"  # Cambia por el nombre real de tu base de datos
+    "database": "BASES2_PROYECTOS"  # Cambia por el nombre real de tu base de datos
 }
 
 #BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,23 +34,36 @@ def _none(x: str):
     return None if x is None or x == r"\N" or x == "" else x
 
 def _to_int(x: str):
-    x = _none(x);  return None if x is None else int(x)
-
-def _to_float(x: str):
-    x = _none(x);  return None if x is None else float(x)
-
-def _to_year(x: str):
-    # YEAR en MySQL: acepta 1901–2155 y 0000; si viene fuera de rango, puedes devolver None
     x = _none(x)
     if x is None:
         return None
     try:
-        y = int(x)
-        # Ajusta si quieres validar rango estrictamente:
-        # if y < 0 or y > 2155: return None
-        return y
-    except:
+        return int(x)
+    except (ValueError, TypeError):
+        # Log opcional para detectar filas problemáticas
+        # print(f"[WARN] valor entero inválido: {x!r}")
         return None
+
+def _to_float(x: str):
+    x = _none(x)
+    if x is None:
+        return None
+    try:
+        return float(x)
+    except (ValueError, TypeError):
+        # print(f"[WARN] valor float inválido: {x!r}")
+        return None
+
+def _to_year(x: str):
+    x = _none(x)
+    if x is None:
+        return None
+    try:
+        return int(x)  # si usas YEAR en MySQL, recuerda su rango
+    except (ValueError, TypeError):
+        # print(f"[WARN] año inválido: {x!r}")
+        return None
+
 
 def _split_csv(x: str):
     x = _none(x)
@@ -70,7 +91,7 @@ def _load_title_basics_and_genres(cursor, connection):
     batch_tb, batch_bg = [], []
     inserted_tb = inserted_bg = 0
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             tconst = row["tconst"]
@@ -121,7 +142,7 @@ def _load_name_basics_professions_known(cursor, connection):
     batch_nb, batch_np, batch_nk = [], [], []
     ins_nb = ins_np = ins_nk = 0
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             nconst = row["nconst"]
@@ -174,7 +195,7 @@ def _load_title_akas_and_parts(cursor, connection):
     b_aka, b_typ, b_att = [], [], []
     ins_aka = ins_typ = ins_att = 0
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             titleId = row["titleId"]
@@ -223,7 +244,7 @@ def _load_title_crew(cursor, connection):
     b_dir, b_wri = [], []
     ins_dir = ins_wri = 0
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             tconst = row["tconst"]
@@ -249,7 +270,7 @@ def _load_title_episode(cursor, connection):
               "(tconst, parentTconst, seasonNumber, episodeNumber) "
               "VALUES (%s,%s,%s,%s)")
     b_ep = []; ins_ep = 0
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             tconst = row["tconst"]
@@ -269,7 +290,7 @@ def _load_title_principals(cursor, connection):
               "(tconst, ordering, nconst, category, job, characters) "
               "VALUES (%s,%s,%s,%s,%s,%s)")
     b_pr = []; ins_pr = 0
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             b_pr.append((
@@ -292,7 +313,7 @@ def _load_title_ratings(cursor, connection):
               "(tconst, averageRating, numVotes) "
               "VALUES (%s,%s,%s)")
     b_rt = []; ins_rt = 0
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             b_rt.append((row["tconst"], _to_float(row["averageRating"]), _to_int(row["numVotes"])))
@@ -358,4 +379,4 @@ def carga_masiva():
 
 if __name__ == "__main__":
     print(health_check())
-    # print(carga_masiva())
+    print(carga_masiva())

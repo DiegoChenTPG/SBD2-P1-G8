@@ -28,8 +28,8 @@ CREATE TABLE title_basics (
     primaryTitle   VARCHAR(1024) NOT NULL,
     originalTitle  VARCHAR(1024) NOT NULL,
     isAdult        TINYINT       NOT NULL,  -- 0/1
-    startYear      YEAR      NULL,      -- YYYY; usar NULL si venía "\N"
-    endYear        YEAR      NULL,      -- YYYY; usar NULL si venía "\N"
+    startYear     SMALLINT     NULL,      -- YYYY; usar NULL si venía "\N"
+    endYear       SMALLINT     NULL,      -- YYYY; usar NULL si venía "\N"
     runtimeMinutes INT           NULL       -- usar NULL si venía "\N"
 );
 
@@ -100,8 +100,8 @@ CREATE TABLE aka_attributes (
 CREATE TABLE name_basics (
     nconst      VARCHAR(20) PRIMARY KEY,
     primaryName VARCHAR(512) NOT NULL,
-    birthYear   YEAR     NULL,          -- YYYY (NULL si \N)
-    deathYear   YEAR     NULL           -- YYYY (NULL si \N)
+    birthYear  SMALLINT    NULL,          -- YYYY (NULL si \N)
+    deathYear  SMALLINT    NULL           -- YYYY (NULL si \N)
 );
 
 -- ============================================================================
