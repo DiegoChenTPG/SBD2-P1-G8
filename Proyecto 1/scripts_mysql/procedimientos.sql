@@ -1,8 +1,7 @@
 USE BASES2_PROYECTOS;
 
-DELIMITER $$
-
-DROP PROCEDURE IF EXISTS show_info_movie_show $$
+DROP PROCEDURE IF EXISTS show_info_movie_show;
+-- PROCEDIMIENTO 
 CREATE PROCEDURE show_info_movie_show(IN p_title VARCHAR(1024))
 BEGIN
   /* ===================== 1) Ficha básica ===================== */
@@ -16,17 +15,17 @@ BEGIN
     tb.endYear,
     tb.runtimeMinutes,
     (SELECT GROUP_CONCAT(DISTINCT bg.genre ORDER BY bg.genre SEPARATOR ', ')
-       FROM basics_genres bg WHERE bg.tconst = tb.tconst) AS genres,
+      FROM basics_genres bg WHERE bg.tconst = tb.tconst) AS genres,
     r.averageRating,
     r.numVotes,
     EXISTS (SELECT 1 FROM episodes e WHERE e.parentTconst = tb.tconst LIMIT 1) AS isSeries,
     EXISTS (SELECT 1 FROM episodes e WHERE e.tconst       = tb.tconst LIMIT 1) AS isEpisode
   FROM title_basics tb
   LEFT JOIN ratings r ON r.tconst = tb.tconst
-  WHERE tb.primaryTitle  LIKE CONCAT('%', p_title, '%')
-     OR tb.originalTitle LIKE CONCAT('%', p_title, '%')
+  WHERE tb.primaryTitle  = p_title
+     OR tb.originalTitle = p_title
      OR EXISTS (SELECT 1 FROM akas a 
-                WHERE a.titleId = tb.tconst AND a.title LIKE CONCAT('%', p_title, '%'))
+                WHERE a.titleId = tb.tconst AND a.title = p_title)
   ORDER BY tb.startYear, tb.primaryTitle;
 
   /* ===================== 2) AKAs + types/attributes ===================== */
@@ -47,10 +46,10 @@ BEGIN
     SELECT 1 FROM title_basics tb
     WHERE tb.tconst = a.titleId
       AND (
-        tb.primaryTitle  LIKE CONCAT('%', p_title, '%') OR
-        tb.originalTitle LIKE CONCAT('%', p_title, '%') OR
+        tb.primaryTitle  = p_title OR
+        tb.originalTitle = p_title OR
         EXISTS (SELECT 1 FROM akas a2 
-                WHERE a2.titleId = tb.tconst AND a2.title LIKE CONCAT('%', p_title, '%'))
+                WHERE a2.titleId = tb.tconst AND a2.title = p_title)
       )
   )
   ORDER BY a.titleId, a.ordering;
@@ -67,10 +66,10 @@ BEGIN
        JOIN name_basics nb ON nb.nconst = cw.nconst
        WHERE cw.tconst = tb.tconst) AS writers
   FROM title_basics tb
-  WHERE tb.primaryTitle  LIKE CONCAT('%', p_title, '%')
-     OR tb.originalTitle LIKE CONCAT('%', p_title, '%')
+  WHERE tb.primaryTitle  = p_title
+     OR tb.originalTitle = p_title
      OR EXISTS (SELECT 1 FROM akas a 
-                WHERE a.titleId = tb.tconst AND a.title LIKE CONCAT('%', p_title, '%'))
+                WHERE a.titleId = tb.tconst AND a.title = p_title)
   ORDER BY tb.tconst;
 
   /* ===================== 4) Principals (reparto/equipo) ===================== */
@@ -91,10 +90,10 @@ BEGIN
     SELECT 1 FROM title_basics tb
     WHERE tb.tconst = p.tconst
       AND (
-        tb.primaryTitle  LIKE CONCAT('%', p_title, '%') OR
-        tb.originalTitle LIKE CONCAT('%', p_title, '%') OR
+        tb.primaryTitle  = p_title OR
+        tb.originalTitle = p_title OR
         EXISTS (SELECT 1 FROM akas a 
-                WHERE a.titleId = tb.tconst AND a.title LIKE CONCAT('%', p_title, '%'))
+                WHERE a.titleId = tb.tconst AND a.title = p_title)
       )
   )
   ORDER BY p.tconst, p.ordering;
@@ -117,12 +116,39 @@ BEGIN
     SELECT 1 FROM title_basics tb
     WHERE tb.tconst = e.parentTconst
       AND (
-        tb.primaryTitle  LIKE CONCAT('%', p_title, '%') OR
-        tb.originalTitle LIKE CONCAT('%', p_title, '%') OR
+        tb.primaryTitle  = p_title OR
+        tb.originalTitle = p_title OR
         EXISTS (SELECT 1 FROM akas a 
-                WHERE a.titleId = tb.tconst AND a.title LIKE CONCAT('%', p_title, '%'))
+                WHERE a.titleId = tb.tconst AND a.title = p_title)
       )
   )
   ORDER BY e.parentTconst, e.seasonNumber, e.episodeNumber;
-END $$
-DELIMITER ;
+END;
+
+
+DROP PROCEDURE IF EXISTS show_director_movies;
+CREATE PROCEDURE show_director_movies(IN p_director VARCHAR(512))
+BEGIN
+  /* Películas (no episodios) dirigidas por p_director */
+  SELECT
+    nb.primaryName                              AS director,
+    tb.tconst,
+    tb.titleType,                               -- p.ej. movie, short, tvMovie
+    tb.primaryTitle                             AS title,
+    tb.originalTitle,
+    tb.startYear,
+    tb.runtimeMinutes,
+    (SELECT GROUP_CONCAT(DISTINCT bg.genre ORDER BY bg.genre SEPARATOR ', ')
+       FROM basics_genres bg
+       WHERE bg.tconst = tb.tconst)             AS genres,
+    r.averageRating,
+    r.numVotes
+  FROM name_basics     nb
+  JOIN crew_directors  cd ON cd.nconst = nb.nconst
+  JOIN title_basics    tb ON tb.tconst = cd.tconst
+  LEFT JOIN ratings    r  ON r.tconst  = tb.tconst
+  WHERE nb.primaryName = p_director
+    AND NOT EXISTS (SELECT 1 FROM episodes e WHERE e.tconst = tb.tconst)  -- excluye episodios
+  ORDER BY tb.startYear, tb.primaryTitle;
+END;
+
