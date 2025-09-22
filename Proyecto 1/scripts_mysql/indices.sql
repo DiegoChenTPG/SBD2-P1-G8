@@ -32,3 +32,24 @@ CREATE INDEX idx_tb_titleType ON title_basics (titleType);
 CREATE INDEX idx_tb_startYear ON title_basics (startYear);
 
 
+-- Este es enfocado para el segundo procedimiento Top 10 películas con mejor rating
+-- Usado para ORDER BY averageRating, numVotes (top-N rápido)
+CREATE INDEX idx_rt_avgVotes ON ratings (averageRating, numVotes);
+
+
+
+-- Estos son enfocados para el tercer procedimiento Director con más películas
+-- Optimiza el GROUP BY nb.nconst y el join refiriendose a los titulos
+CREATE INDEX idx_cd_nconst_tconst ON crew_directors (nconst, tconst);
+-- Permite que el optimizador arranque desde “solo movies” si asi se decide
+CREATE INDEX idx_tb_type_tconst ON title_basics (titleType, tconst);
+
+
+-- Estos son enfocados para el cuarto procedimiento Top 10 actores/actrices con mas peliculas
+-- Filtra primero por category y agrupa/une eficiente por nconst
+CREATE INDEX idx_p_cat_nconst_tconst ON principals (category, nconst, tconst);
+-- Usar de nuevo el mismo de arriba para “solo movies” CREATE INDEX idx_tb_type_tconst ON title_basics (titleType, tconst);
+
+
+
+

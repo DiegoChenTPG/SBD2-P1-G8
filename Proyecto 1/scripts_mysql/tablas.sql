@@ -1,12 +1,3 @@
--- ============================================================================
--- Esquema IMDb (normalizado, versión simple con PK y FK mínimas)
--- - Sin ENGINE / DEFAULT CHARSET explícitos
--- - PK de una columna declaradas EN LÍNEA (columna PRIMARY KEY)
--- - PK compuestas como constraint al final de la tabla
--- - Sin índices extra (salvo los implícitos por PK/FK)
--- - Convierte '\N' -> NULL en tu carga
--- ============================================================================
-
 CREATE DATABASE IF NOT EXISTS BASES2_PROYECTOS;
 USE BASES2_PROYECTOS;
 
@@ -40,7 +31,7 @@ CREATE TABLE title_basics (
 -- ============================================================================
 CREATE TABLE basics_genres (
     tconst       VARCHAR(20)  NOT NULL,
-    primaryTitle VARCHAR(1024) NOT NULL,   -- se conserva por tu requerimiento
+    primaryTitle VARCHAR(1024) NOT NULL, 
     genre        VARCHAR(64)  NOT NULL,
     PRIMARY KEY (tconst, genre),
     FOREIGN KEY (tconst) REFERENCES title_basics(tconst)
@@ -211,7 +202,7 @@ CREATE TABLE name_known_for (
 );
 
 -- ============================================================================
--- Notas de carga (referenciales; no ejecutables)
+-- Notas para el que se va a encargar de la carga masiva
 -- ============================================================================
 -- 1) Inserta primero:
 --      - title_basics
@@ -220,7 +211,7 @@ CREATE TABLE name_known_for (
 --
 -- 2) Convierte '\N' a NULL antes de insertar (LOAD DATA o proceso ETL).
 --
--- 3) Campos booleanos (isAdult, isOriginalTitle): usar 0/1.
+-- 3) Campos booleanos (isAdult, isOriginalTitle): se usa 0/1.
 --
 -- 4) Listas separadas por comas (genres, types, attributes, professions, knownForTitles):
---    dividir en tu proceso ETL y poblar las tablas normalizadas correspondientes.
+--    dividir en tu proceso ETL y llenar las tablas normalizadas correspondientes.
