@@ -129,7 +129,7 @@ obtenerInfoTitulo("Breaking Bad");
 */
 
 // 2. Peliculas de un director por su nombre
-function peliculasDeDirector(nombre) {
+function peliculasDeDirectorViejo(nombre) {
     if (!nombre || typeof nombre !== "string") {
         throw new Error("Debes enviar un nombre de director (string).");
     }
@@ -182,11 +182,11 @@ function peliculasDeDirector(nombre) {
 }
 
 // se usa asi
-peliculasDeDirector("Christopher Nolan");
+peliculasDeDirectorViejo("Christopher Nolan");
 
 
 // 3. Top 10 peliculas con mejor rating
-function top10PeliculasMejorRating() {
+function top10PeliculasMejorRatingViejo() {
     return db.ratings.aggregate([
         // Orden global usando el índice {averageRating:-1, numVotes:-1}
         { $sort: { averageRating: -1, numVotes: -1 } },
@@ -234,7 +234,7 @@ function top10PeliculasMejorRating() {
     ], { allowDiskUse: true }).toArray();
 }
 
-top10PeliculasMejorRating();
+top10PeliculasMejorRatingViejo();
 
 
 // 4. Director con mas peliculas

@@ -52,12 +52,20 @@ db.crew_directors.createIndex({ nconst: 1, tconst: 1 }, { name: "idx_cd_nconst_t
 db.title_basics.createIndex({ tconst: 1 }, { name: "pk_title_basics" });
 db.title_basics.createIndex({ titleType: 1, startYear: 1, primaryTitle: 1 }, { name: "idx_tb_type_year_title" });
 
+db.titles_view.createIndex({ titleType: 1, directors: 1, startYear: 1, primaryTitle: 1 }, { name: "ix_movie_director_year_title" }); 
+// INDICE UNICO PARA LA NUEVA FUNCION
+
 // 3. Para las Top 10 peliculas con mejor rating
 
 db.title_basics.createIndex({ titleType: 1 }, { name: "idx_tb_titleType" });
 db.ratings.createIndex({ tconst: 1 }, { name: "pk_ratings_tconst" });
 db.ratings.createIndex({ averageRating: -1, numVotes: -1 }, { name: "idx_ratings_rating_votes" });
 db.title_basics.createIndex({ tconst: 1, titleType: 1 }, { name: "idx_tb_tconst_type" });
+
+db.titles_view.createIndex(
+    { titleType: 1, "rating.averageRating": -1, "rating.numVotes": -1 },
+    { name: "ix_movie_rating_sort" }
+); // INDICE UNICO PARA LA NUEVA FUNCION
 
 // 4. Para el director con las peliculas
 db.title_basics.createIndex({ titleType: 1, tconst: 1 }, { name: "idx_tb_type_tconst" });
