@@ -23,17 +23,73 @@ Esta coleccion fue pensada de esta manera especifica mas que todo para la realiz
 
   - Responde a información por nombre de título ademas de que sirve de base para películas de un director por su nombre y Top 10 por rating sin tocar colecciones originales.
 
+Ejemplo del documento completo
+```json
+{
+  "_id": ObjectId("671cbde8a1b2cde123456789"),
+  "tconst": "tt0944947",
+  "titleType": "tvSeries",
+  "primaryTitle": "Game of Thrones",
+  "originalTitle": "Game of Thrones",
+  "isAdult": 0,
+  "startYear": 2011,
+  "runtimeMinutes": 57,
+
+  "genres": [
+    "Action",
+    "Adventure",
+    "Drama"
+  ],
+
+  "rating": {
+    "averageRating": 9.2,
+    "numVotes": 1900000
+  },
+
+  "seasonsCount": 8,
+  "episodesCount": 73,
+
+  "episodesBySeason": [
+    { "seasonNumber": 1, "episodesInSeason": 10 },
+    { "seasonNumber": 2, "episodesInSeason": 10 },
+    { "seasonNumber": 3, "episodesInSeason": 10 },
+    { "seasonNumber": 4, "episodesInSeason": 10 },
+    { "seasonNumber": 5, "episodesInSeason": 10 },
+    { "seasonNumber": 6, "episodesInSeason": 10 },
+    { "seasonNumber": 7, "episodesInSeason": 7 },
+    { "seasonNumber": 8, "episodesInSeason": 6 }
+  ]
+}
+```
+
+
 - **`material_director_movie_counts`:** conteo de películas por director (origen: `title_basics` + `principals` + `name_basics`).  
 Esta colección materializada fue diseñada específicamente para optimizar consultas de agregación sobre directores. Al calcular el conteo total de películas por director, evitamos realizar joins costosos y operaciones de agrupamiento en tiempo real. La estructura simple (director + contador) permite respuestas instantáneas gracias un índice compuesto que ordena por cantidad de películas.
 
   - Responde a director con más películas.
 
+Ejemplo del documento completo
+```json
+{
+  "_id": "nm0000233",              
+  "director": "Christopher Nolan", 
+  "peliculas": 12                  
+}
+```
 - **`material_actor_movie_counts`:** conteo de películas por actor/actriz (origen: `title_basics` + `principals` + `name_basics`).  
 Similar a la materialización de directores, esta colección calcula estadísticas de actores para evitar agregaciones pesadas en cada consulta. Dado que los actores normalmente participan en más producciones que los directores, materializar estos conteos es crítico para el rendimiento. El diseño permite obtener rankings (top 10, top 100, cosa que como tal en la funcion ya solo pedimos 10 unicamente) sin procesar millones de registros de `principals`, reduciendo drásticamente la velocidad de consulta.
 
   - Responde Top 10 actores con más películas.
 
-Además, se incluyó un patch específico para series/miniseries que recalcula episodios por temporada antes de fusionar con `titles_view`.
+Ejemplo del documento completo
+```json
+{
+  "_id": "nm0000138",      
+  "actor": "Leonardo DiCaprio", 
+  "peliculas": 37           
+}
+```
+
 
 **Regla:** Consultamos solo las materializadas; las colecciones originales fueron usadas como apoyo para el llenado de datos de manera mas simple desde el script de carga masiva a la base, asi dando la oportunidad de trabajar las colecciones materializadas mas rapidamente (ya que ya contamos con los datos en la base y no desde el TSV) y aclarar de nuevo que estas colecciones no son para la lectura.
 
